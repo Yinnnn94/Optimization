@@ -10,70 +10,66 @@ class TABU_SEARCH():
     def function(self, x1, x2):
         x1_square = x1**2
         x1_10_square = (x1 + 10) **2
-        fx = 100*(x2 - 0.01*x1_square + 1) + 0.01* x1_10_square
+        fx = 100*(x2 - 0.01*x1_square + 1) + 0.01 * x1_10_square
         return round(fx,4)
 
     def decay_rate_sigmoid(self, iter_): #
         r = 1 - (1/(1 + np.exp(iter_)))
         return r
     
-    def new_candidate(self, x1, x2):
+    def new_candidate(self, x1, x2): #若超出範圍時這時該怎麼做?
         new_x1 = x1 + np.random.randn() * self.decay_rate_sigmoid(iter_)
         new_x2 = x2 + np.random.randn() * self.decay_rate_sigmoid(iter_)
         return new_x1, new_x2
-
-
-
-
+ 
+# Parameter
 tabu_list = list()
-tabu_list_max_len = 20
-iter_ = 10 #iteration number
+y_function_arr = np.array([])
+tabu_list_max_len = 10
+iter_ = 3  #iteration number
 Best_solution = float('inf')
+n = 2  # numer of n times to do tweaak
 
-n = 10 # numer of n times to do tweaak
+# Program starts
 tabu = TABU_SEARCH(Best_solution, tabu_list_max_len)
-x1 = rand.uniform(-15,-5)
+
+#initial value
+x1 = rand.uniform(-15,-5) 
 x2 = rand.uniform(-3,3)
-S = tabu.function(x1, x2)
-Best_solution = S
-while iter_ > 0:
-    print(f'第{iter_}迭代:')
-    if len(tabu_list) <= tabu_list_max_len:
-        r_x1, r_x2 = tabu.new_candidate(x1, x2)
-        R = tabu.function(r_x1, r_x2) #transform from initial solution 1 time
-        print(f'第一次初始值轉變後結果(R):{R}')
-        for i in range(n): #gradient n times 
-            trigger_flag = False
-            w_x1, w_x2 = tabu.new_candidate(x1, x2) # transform from initial solution n times (20)
+
+
+for iter in range(iter_):
+    print(f'第{iter}迭代:')
+    best_candidate = None #先設為空值
+    best_temp_fitness = float('inf')
+    w_x1, w_x2 = tabu.new_candidate(best_candidate[0], best_candidate[1]) # 產生新點
+    
+    for gradient_n in range(n): #gradient n times 
+        if (w_x1, w_x2) not in tabu_list:
             W = tabu.function(w_x1, w_x2) 
-            if (W < R) or (R in tabu_list):
-                trigger_flag = True 
-            if trigger_flag == True and (W not in tabu_list):
-                print('要放入喔')
-                R = W #R為暫時最小的值
-            else:
-                print('不放!!!')
-            if R not in tabu_list:
-                S = R # transform S to R( which R is transformed by W )
-                print(f'new S :{S}')
-                tabu_list.append(R)
-            else:
-                print('已經放過了!')
-            if S < Best_solution:
-                print()
-                Best_solution = S
-                print(f'Best solution(從S變過來的):{Best_solution}')
-            else:
-                print(f'Best solution(未改過):{Best_solution}')
-        print(f'tabu list 長度: {len(tabu_list)}')  
-    else:
-        print('刪掉最舊得值中...')
-        tabu_list.remove(tabu_list[0])
-        print(f'tabu list 長度: {len(tabu_list)}')
-    iter_ -= 1
+        if W < best_temp_fitness:
+            best_candidate = np.array[w_x1, w_x2]
+            best_temp_fitness = W
+    if best_candidate == None:
+        break
 
 
-print(tabu_list, len(tabu_list))
+    #     tabu.tabu_list.append(Best_solution)             
+        
+    #     if S < Best_solution:
+    #         Best_solution = S
+    #         print(f'Best solution(從S變過來的):{Best_solution}')
+    #     else:
+    #         print(f'Best solution(未改過):{Best_solution}')   
+    
+    # if len(tabu_list) > tabu_list_max_len: # 如果大於預設的tabu list則刪除第一個進來的值(FIFO)
+    #     print('刪掉最舊的值中...')
+    #     tabu_list.remove(tabu_list[0])
+    #     print(f'tabu list 長度: {len(tabu_list)}, \ntabu list有{tabu_list}')
+
+
+# print(f'tabu list 長度: {len(tabu_list)}, \ntabu list有{tabu_list}')
+# print(f'(x1, x2) = {best_candidate} ,最小值為:{min(tabu_list)}')
 
     
 # else:
