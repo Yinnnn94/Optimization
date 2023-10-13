@@ -3,90 +3,76 @@ import random as rand
 import time 
 import matplotlib.pyplot as plt
 
-program_start = time.time()
+program_start = time.time() # 程式開始
+
+
 class TABU_SEARCH():
     
-    def __init__(self, Best_solution, tabu_list_max_len, x1_range, x2_range):
-        self.Best_solution = Best_solution
+    def __init__(self, tabu_list_max_len): # 初始化
         self.tabu_list_max_len = tabu_list_max_len
-        self.x1_range = x1_range
-        self.x2_range = x2_range
 
-    def function(self, x1, x2):
+    def function(self, x1, x2): # 定義方程式
         x1_square = x1**2
         x1_10_square = (x1 + 10) **2
         fx = 100*(x2 - 0.01*x1_square + 1) + 0.01 * x1_10_square
         return round(fx,4)
 
-    def decay_rate_sigmoid(self, iter_): #
-        r = 1 - (1/(1 + np.exp(iter_)))
-        return r
-    
-    def new_candidate(self, x1, x2): 
-        new_x1 = x1 + np.random.randn() * self.decay_rate_sigmoid(iter_)
-        new_x2 = x2 + np.random.randn() * self.decay_rate_sigmoid(iter_)
-        if (new_x1 not in self.x1_range) or (new_x2 not in self.x2_range): 
-            new_x1 = rand.uniform(-15,-5)
-            new_x2 = rand.uniform(-3,3)
-        return new_x1, new_x2
+    def new_candidate(self, x1, x2, lr): # 產生鄰近點
+        neighbor = []
+        # 共產生9個鄰近點
+        for i in range(-1,2): 
+            for j in range(-1,2): 
+                new_x1 = round(max(-15, min(15, x1 + i * lr)),3)
+                new_x2 = round(max(-3, min(3, x2 + j * lr)),3)
+                neighbor.append([new_x1, new_x2]) # 將其鄰近點全部放置陣列中
+        return neighbor
  
 # Parameter
 tabu_list = list()
-y_function_arr = list()
+y_function_arr = list() # 用來放置繪製converge curve的
 tabu_list_max_len = 10
-generate_data = np.array([])
-iter_ = 30  #iteration number
-Best_solution = float('inf')
-n = 30  # numer of n times to do tweaak
-x1_range = range(-15, -5)
-x2_range = range(-3, 3)
-# Program starts
-tabu = TABU_SEARCH(Best_solution, tabu_list_max_len, x1_range, x2_range)
+iter_ = 1000  # 迭代次數
 
-#initial value
+tabu = TABU_SEARCH(tabu_list_max_len)
+
+# 產生初始解
 x1 = rand.uniform(-15,-5) 
 x2 = rand.uniform(-3,3)
+Best_solution = tabu.function(x1, x2) # 先計算初始解的適應值
+best_candidate = np.array([x1,x2]) # 將初始解認定為暫時最佳解 
 
+for i in range(iter_): # 迭代i次
+    neighbor = tabu.new_candidate(best_candidate[0], best_candidate[1], 0.01) # 先產生由初始解附近的鄰近解
+    best_temp_fitness = float('inf') # 先將暫時最佳解認定為infinte
 
-for i in range(iter_):
-    best_temp_fitness = float('inf')
-    w_x1, w_x2 = tabu.new_candidate(x1, x2) # 先產生由初始解變動而成的新點
-    generate_data = np.append(generate_data, [w_x1, w_x2])
-    for gradient_n in range(n): #gradient n times 
-        W = tabu.function(w_x1, w_x2) 
-        if W < best_temp_fitness and (w_x1, w_x2) not in tabu_list:
-            best_candidate = np.array([w_x1, w_x2])
-            best_temp_fitness = W
-            
-    y_function_arr.append(best_temp_fitness)
-    tabu_list.append([w_x1, w_x2])             
+    for n in neighbor: 
+        W = tabu.function(n[0],n[1]) #將每個鄰近點算W
+        if W < best_temp_fitness and (n[0], n[1]) not in tabu_list: # 如果此鄰近點比暫時最佳解還要小 且 此鄰近點尚未被放入tabu list時
+            best_candidate = np.array([n[0], n[1]]) 
+            best_temp_fitness = W  # 將此值取代暫時最佳解
 
-    if W < Best_solution:
-        Best_solution = W
-    if len(tabu_list) > tabu.tabu_list_max_len: # 如果大於預設的tabu list則刪除第一個進來的值(FIFO)
-        tabu_list.remove(tabu_list[0])
+    if best_temp_fitness < Best_solution: # 若暫時最佳解比之前的最佳解還小，則將其取代
+        Best_solution = best_temp_fitness 
+        y_function_arr.append(Best_solution) # 將值放入置y_function_arr中
+    else:
+        y_function_arr.append(Best_solution) # 若暫時最佳解沒有比之前的最佳解還小則將原本的最佳解放入陣列中
 
+    tabu_list.append([best_candidate[0],best_candidate[1]]) # 將點放入tabu_list
 
-generate_data = generate_data.reshape(int(len(generate_data)/2), 2)
+    if len(tabu_list) > tabu.tabu_list_max_len: 
+        tabu_list.remove(tabu_list[0]) # 如果大於預設的tabu list則刪除第一個進來的值(FIFO)
 
-fig, (ax1, ax2) = plt.subplots(1,2, figsize=(17,4))
-# ax1
-ax1.scatter(generate_data[:,0], generate_data[:,1])
-ax1.set_title('Generated data')
-ax1.set_xlabel('x1')
-ax1.axvline(-15, c = 'red')
-ax1.axvline(-5, c = 'red')
-ax1.axhline(-3, c = 'red')
-ax1.axhline(3, c = 'red')
-ax1.set_ylabel('x2', rotation = 0)
+# 印出結果
+print("Minimum value:", min(y_function_arr))
+print("(x1*, x2*):", best_candidate)
 
-# ax2
-ax2.set_title('Best solution iteration')
-ax2.plot(range(1,len(y_function_arr) + 1),y_function_arr)
-ax2.axis(xmin = 1, xmax = len(y_function_arr))
-plt.show() 
-
-print(f'(x1, x2) = {best_candidate} ,最小值為:{min(y_function_arr)}')
+# 繪製Convergence Curve
+plt.figure()
+plt.title('Convergence Curve')
+plt.plot(y_function_arr, label='Convergence Curve')
+plt.xlabel('Iterations')
+plt.ylabel('Objective Function Value')
+plt.legend()
+plt.show()
 program_end = time.time()        
 print(f'Program run time: {round(program_end - program_start, 3)}(sec)')
-
