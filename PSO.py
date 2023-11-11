@@ -1,11 +1,11 @@
 import random as rand
 import numpy as np
-import heapq
 import matplotlib.pyplot as plt
 
 class PSO():
 
-    def __init__(self, D, c1, c2, w):
+    def __init__(self, D, c1, c2, w, iter_):
+        self.iter_ = iter_ 
         self.D = D
         self.c1 = c1
         self.c2 = c2
@@ -18,55 +18,60 @@ class PSO():
 
     def initial_arr(self):
         x_list = [round(rand.uniform(-10, 10), 4) for i in range(self.D)]
-        # x_arr = np.array(x_list)
         return x_list
     
 
-
-pso = PSO(10, 1, 2, 3)
-# Assumption: Initial 8 D dimension data
-p_size = 3
+pso = PSO(20, 1.5, 1, 1, 100)
+p_size = 10
 initial_list = []
-w = 0.5
-c1 = 1
-c2 = 1
 vel_list = [round(rand.uniform(-0.5, 0.5), 4) for i in range(p_size)]
 for i in range(p_size):
     x_arr = pso.initial_arr()
     initial_list.append(x_arr)
-initial_arr = np.array(initial_list)
-p_best_fit = [pso.function(x) for x in initial_arr] # 用來存放所有人的fit值
+
+
+#產生初始解(p_size x D) <- (3 x 5)
+initial_arr = np.array(initial_list) 
 p_best_x_arr = initial_arr # 因為是第一次所以先將原始的初始解放入
-g_best_x_arr = initial_arr[p_best_fit.index(min(p_best_fit))] # 這p_size個裡面最棒的array
-g_best_fit = p_best_fit # 這群人最小的值
+p_best_fit = [pso.function(x) for x in initial_arr] # 用來存放所有人的fit值
+g_best_x_arr = initial_arr[p_best_fit.index(min(p_best_fit))] # 這p_size個裡面最棒的array(1 x D)
+g_best_fit =  pso.function(initial_arr[p_best_fit.index(min(p_best_fit))]) # 這群人最小的值
 iter_g_best_fit = [] # 用來存放每次迭代的最好值
 
-### 下面要改成goodnotes畫的這種流程圖
-for num in range(10):
-    print(f'第{num}次迭代:')
-    for v, x_index, x_value in zip(vel_list, range(len(initial_arr)), initial_arr):
-        print(f'原始值:{x_value}')
+# Tweak
+
+while pso.iter_ >= 0:
+    for v, x_index, x_value in zip(vel_list, range(len(p_best_x_arr)), p_best_x_arr):
         r1 = rand.random()
         r2 = rand.random()
-        new_v = (w * v) + (c1 * r1 * (p_best_x_arr[x_index] - x_value)) + (c2 * r2 * (g_best_x_arr - x_value))
+        # 產生新值
+        new_v = (pso.w * v) + (pso.c1 * r1 * (p_best_x_arr[x_index] - x_value)) + (pso.c2 * r2 * (g_best_x_arr - x_value))
         new_x = x_value + new_v
-        for index, value in enumerate(new_x):
+
+        # 用來確認是否新產生的值有超過範圍
+        for index, value in enumerate(new_x): 
             if value < -10:
                 new_x[index] = -10
             elif value > 10:
                 new_x[index] = 10
             else:
                 pass 
-        print(f'新值:{new_x}')
-        if pso.function(new_x) < p_best_fit[x_index]:
+        # 如果新產出的值計算出的適應值比原本位置得適應值還要小，則取代
+        if pso.function(new_x) < p_best_fit[x_index]: 
             p_best_fit[x_index] = pso.function(new_x)
-            p_best_x_arr[x_index] = x_value
-
-        if p_best_fit < g_best_fit:
-            g_best_fit = p_best_fit
+            p_best_x_arr[x_index] = new_x
+    
+    temp_g_best = pso.function(initial_arr[p_best_fit.index(min(p_best_fit))])
+    if temp_g_best < g_best_fit:
+        g_best_x_arr = initial_arr[p_best_fit.index(min(p_best_fit))]
+        g_best_fit = temp_g_best
     iter_g_best_fit.append(g_best_fit)
+    pso.iter_ -= 1
 
+# 繪製圖表
 plt.plot(iter_g_best_fit)
+plt.xlabel('The number of iteration')
+plt.ylabel('Fitness')
+plt.title('Converage plot for PSO')
 plt.show()
-
-print(f'Global minimum:{g_best_fit}')
+print(f'Global minimum:{g_best_fit}, 矩陣值為:{g_best_x_arr}')
