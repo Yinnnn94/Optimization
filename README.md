@@ -3,7 +3,8 @@
 ## Done!
 * Simulated Annealing
 * Tabu Search
-* Genetic Algorithm 
-## To be continued...
+* Genetic Algorithm
 * Particle Swarm Optimization
-* 
+ 
+## To be continued...
+
