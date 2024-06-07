@@ -15,6 +15,7 @@ Dealing with TSP with below conditions:
 3. The primary objective is to minimize the overall distance traveled.
    
 ## Flow chart
-
+1. Clustering nodes using K-means with a constraint on the sum of node weights not exceeding 100.
+2. Using a Genetic Algorithm (GA) to optimize the sequence for each cluster path.
 ## Output
 ![Output](5path_GA_path.png)
