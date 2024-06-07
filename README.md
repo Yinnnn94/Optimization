@@ -1,9 +1,9 @@
 # Optimization
 
-## Done!
+## Done☑️
 * Simulated Annealing
 * Tabu Search
-* Genetic Algorithm
+* Genetic Algorithm: TSP problem
 * Particle Swarm Optimization
  
 ## To be continued...
