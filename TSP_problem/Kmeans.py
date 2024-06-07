@@ -3,7 +3,7 @@ import numpy as np
 
 # Kmeans with one limitaion all routes weight have to below or equal 100
 
-class KMEANS_with_limitation():
+class Kmeans_with_limitation():
     def __init__(self, k, loc):
         self.k = k # Cluster number
         self.loc = loc # The numpy array which puts (x, y, weight) 
@@ -55,14 +55,13 @@ class KMEANS_with_limitation():
             new_cores = np.append(new_cores, [new_x, new_y])
         return new_cores.reshape(self.k,2)
 
-    def plot(self, data_kmeans, cores, i):
+    def plot(self, data_kmeans, i):
         ulabel = np.unique(data_kmeans[:,3])
         color=['orange','limegreen','gray','royalblue', 'purple']
         plt.title(f'{i}th kmeans')
         for i in ulabel:
             plt.scatter(data_kmeans[data_kmeans[:,3]==i][:,0], data_kmeans[data_kmeans[:,3]==i][:,1], 
                     c = color[int(i)], label = i)
-        # plt.scatter(cores[:,0], cores[:,1], c = 'red')
         plt.legend()
         plt.gca().legend(('Class 0','Class 1','Class 2','Class 3', 'Class 4'))
         plt.show()
